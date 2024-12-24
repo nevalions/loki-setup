@@ -13,11 +13,14 @@ services:
 
   promtail:
     image: grafana/promtail:latest
+    env_file:
+      - .env
     volumes:
       - ./promtail-config.yaml:/etc/promtail/config.yml
       - /var/log:/var/log
       - /home/linroot/code/statsboard/statsboards-backend/src/logs:/home/linroot/code/statsboard/statsboards-backend/src/logs
-    command: -config.file=/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml -config.expand-env=true
+    # command: /bin/sh -c 'envsubst < /etc/promtail/config.yml > /etc/promtail/config_substituted.yml && promtail -config.file=/etc/promtail/config_substituted.yml'
     networks:
       - loki
   
@@ -26,7 +29,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=stats
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
     volumes:
