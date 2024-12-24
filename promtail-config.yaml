@@ -34,7 +34,7 @@ scrape_configs:
         labels:
           job: statsboards
           app: backend
-          __path__: ${STATS_BACK_LOGS_PATH}
+          __path__: ${STATS_BACK_LOGS_PATH_BACK}
           # __path__: /home/linroot/code/statsboard/statsboards-backend/src/logs/backend.log
     # pipeline_stages:
     #   - regex:
