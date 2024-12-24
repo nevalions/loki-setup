@@ -1,0 +1,45 @@
+# loki-config.yaml
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  log_level: debug
+
+common:
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    # instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2024-12-24
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+# pattern_ingester:
+#   enabled: true
+#   metric_aggregation:
+#     loki_address: localhost:3100
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+# storage_config:
+#   filesystem:
+#     directory: /tmp/loki/chunks
+
+# If you would like to disable reporting, uncomment the following lines:
+#analytics:
+#  reporting_enabled: false
+
