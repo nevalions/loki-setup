@@ -33,3 +33,13 @@ scrape_configs:
           job: statsboards
           app: backend
           __path__: /home/linroot/code/statsboard/statsboards-backend/src/logs/backend.log
+    # pipeline_stages:
+    #   - regex:
+    #       expression: '^(?P<ts>[^ ]+ [^ ]+) - (?P<logger>[^ ]+) - (?P<level>[^ ]+) - (?P<message>.*)'
+    #   - timestamp:
+    #       source: ts
+    #       format: "2006-01-02 15:04:05,000" # Go format for your timestamp
+    #       location: Europe/Moscow # Set to your timezone
+    #   - labels:
+    #       logger:
+    #       level:
