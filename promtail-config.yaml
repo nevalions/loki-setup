@@ -19,14 +19,33 @@ scrape_configs:
   #   relabel_configs:
   #     - source_labels: ['__journal__systemd_unit']
   #       target_label: 'unit'
+  # - job_name: system
+  #   static_configs:
+  #     - targets:
+  #         - localhost
+  #       labels:
+  #         job: varlogs
+  #         __path__: ${VAR_LOG_PATH}
+  - job_name: journal
+    journal:
+      max_age: 12h
+      labels:
+        job: systemd-journal
+    relabel_configs:
+      - source_labels: ['__journal__hostname']
+        target_label: 'host'
+      - source_labels: ['__journal__unit']
+        target_label: 'unit'
+      - source_labels: ['__journal__priority']
+        target_label: 'priority'
   - job_name: system
     static_configs:
       - targets:
           - localhost
         labels:
           job: varlogs
-          __path__: ${VAR_LOG_PATH}
-          # __path__: /var/log/*.log
+          __path__: /var/log/*
+
   - job_name: statsboards
     static_configs:
       - targets:
@@ -35,7 +54,6 @@ scrape_configs:
           job: statsboards
           app: backend
           __path__: ${STATS_BACK_LOGS_PATH_BACK}
-          # __path__: /home/linroot/code/statsboard/statsboards-backend/src/logs/backend.log
   - job_name: nginx-access
     static_configs:
       - targets:
