@@ -36,6 +36,22 @@ scrape_configs:
           app: backend
           __path__: ${STATS_BACK_LOGS_PATH_BACK}
           # __path__: /home/linroot/code/statsboard/statsboards-backend/src/logs/backend.log
+  - job_name: nginx-access
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          app: access
+          __path__: ${NGINX_ACCESS_LOG_PATH}
+  - job_name: nginx-error
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          app: error
+          __path__: ${NGINX_ERROR_LOG_PATH}
     # pipeline_stages:
     #   - regex:
     #       expression: '^(?P<ts>[^ ]+ [^ ]+) - (?P<logger>[^ ]+) - (?P<level>[^ ]+) - (?P<message>.*)'
