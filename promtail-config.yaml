@@ -11,21 +11,6 @@ clients:
   # - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  # - job_name: journal
-  #   journal:
-  #     max_age: 12h
-  #     labels:
-  #       job: systemd-journal
-  #   relabel_configs:
-  #     - source_labels: ['__journal__systemd_unit']
-  #       target_label: 'unit'
-  # - job_name: system
-  #   static_configs:
-  #     - targets:
-  #         - localhost
-  #       labels:
-  #         job: varlogs
-  #         __path__: ${VAR_LOG_PATH}
   - job_name: journal
     journal:
       max_age: 12h
@@ -70,13 +55,3 @@ scrape_configs:
           job: nginx
           app: error
           __path__: ${NGINX_ERROR_LOG_PATH}
-    # pipeline_stages:
-    #   - regex:
-    #       expression: '^(?P<ts>[^ ]+ [^ ]+) - (?P<logger>[^ ]+) - (?P<level>[^ ]+) - (?P<message>.*)'
-    #   - timestamp:
-    #       source: ts
-    #       format: "2006-01-02 15:04:05,000" # Go format for your timestamp
-    #       location: Europe/Moscow # Set to your timezone
-    #   - labels:
-    #       logger:
-    #       level:
