@@ -30,7 +30,26 @@ scrape_configs:
         labels:
           job: varlogs
           __path__: /var/log/*
-
+  # Scrape logs from Docker containers
+  - job_name: docker
+    docker_sd_configs:
+      - host: "unix:///var/run/docker.sock"
+    relabel_configs:
+      # Filter only the nginx and backend containers by name
+      - source_labels: [ '__meta_docker_container_name' ]
+        regex: '.*'
+        action: keep
+      # Label the logs with container name
+      - source_labels: [ '__meta_docker_container_name' ]
+        target_label: 'container'
+      # Label the logs with Docker image
+      - source_labels: [ '__meta_docker_image' ]
+        target_label: 'image'
+      # Add labels for Compose service and project
+      - source_labels: [ '__meta_docker_label_com_docker_compose_service' ]
+        target_label: 'service'
+      - source_labels: [ '__meta_docker_label_com_docker_compose_project' ]
+        target_label: 'project'
   - job_name: statsboards
     static_configs:
       - targets:

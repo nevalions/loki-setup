@@ -23,6 +23,7 @@ services:
       - ${NGINX_ERROR_LOG_PATH}:${NGINX_ERROR_LOG_PATH}
       - /var/log/journal:/var/log/journal:ro
       - /run/log/journal:/run/log/journal:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     command: -config.file=/etc/promtail/config.yml -config.expand-env=true
     networks:
       - loki
