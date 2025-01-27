@@ -37,7 +37,7 @@ scrape_configs:
     relabel_configs:
       # Filter only the nginx and backend containers by name
       - source_labels: [ '__meta_docker_container_name' ]
-        regex: '.*'
+        regex: 'backend|nginx|frontend'
         action: keep
       # Label the logs with container name
       - source_labels: [ '__meta_docker_container_name' ]
@@ -50,6 +50,9 @@ scrape_configs:
         target_label: 'service'
       - source_labels: [ '__meta_docker_label_com_docker_compose_project' ]
         target_label: 'project'
+      - source_labels: [ '__line__' ]
+        regex: '.*(WARNING|ERROR|CRITICAL).*'
+        action: keep
 #  - job_name: statsboards
 #    static_configs:
 #      - targets:
