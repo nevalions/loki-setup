@@ -44,10 +44,10 @@ scrape_configs:
           selector: '{job="backend_dev_logs"} !~ ".*backend_logger.*"'
           action: drop
           drop_counter_reason: promtail_non_back_log
-      - match:
-          selector: '{job="backend_prod_logs"} !~ ".*backend_logger.*"'
-          action: drop
-          drop_counter_reason: promtail_non_back_log
+#      - match:
+#          selector: '{job="backend_prod_logs"} !~ ".*backend_logger.*"'
+#          action: drop
+#          drop_counter_reason: promtail_non_back_log
 #      - match:
 #          selector: '{job="backend_test_logs"} !~ ".*backend_logger.*"'
 #          action: drop
