@@ -21,88 +21,139 @@ scrape_configs:
     relabel_configs:
       - source_labels: [ '__meta_docker_container_label_logging_jobname' ]
         target_label: 'job'
+
     pipeline_stages:
+      # Common stages for all jobs
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
+      - labels:
+          level: level
+          component: component
+          message: message
+      - timestamp:
+          format: "2006-01-02 15:04:05,000"
+          source: timestamp
+      - regex:
+          expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
+      - labels:
+          class: class
+          function: function
+
+      # Drop logs that don't match the backend_logger pattern
+      - match:
+          selector: '{job=~"backend_.*"} !~ ".*backend_logger.*"'
+          action: drop
+          drop_counter_reason: promtail_non_back_log
+
+      # Job-specific template and output
       - match:
           selector: '{job="backend_dev_logs"}'
           stages:
-            - regex:
-                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
-            - labels:
-                level: level
-                component: component
-                message: message
-            - timestamp:
-                format: "2006-01-02 15:04:05,000"
-                source: timestamp
-            - regex:
-                expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
-            - labels:
-                class: class
-                function: function
-      - match:
-          selector: '{job="backend_dev_logs"} !~ ".*backend_logger.*"'
-          action: drop
-          drop_counter_reason: promtail_non_back_log
-      - template:
-          source: output
-          template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
-      - output:
-          source: output
+            - template:
+                source: output
+                template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
+            - output:
+                source: output
 
       - match:
-          selector: '{backend_prod_logs"}'
+          selector: '{job="backend_prod_logs"}'
           stages:
-            - regex:
-                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
-            - labels:
-                level: level
-                component: component
-                message: message
-            - timestamp:
-                format: "2006-01-02 15:04:05,000"
-                source: timestamp
-            - regex:
-                expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
-            - labels:
-                class: class
-                function: function
-      - match:
-          selector: '{job="backend_prod_logs"} !~ ".*backend_logger.*"'
-          action: drop
-          drop_counter_reason: promtail_non_back_log
-      - template:
-          source: output
-          template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
-      - output:
-          source: output
-
+            - template:
+                source: output
+                template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
+            - output:
+                source: output
 
       - match:
-          selector: '{backend_test_logs"}'
+          selector: '{job="backend_test_logs"}'
           stages:
-            - regex:
-                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
-            - labels:
-                level: level
-                component: component
-                message: message
-            - timestamp:
-                format: "2006-01-02 15:04:05,000"
-                source: timestamp
-            - regex:
-                expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
-            - labels:
-                class: class
-                function: function
-      - match:
-          selector: '{job="backend_test_logs"} !~ ".*backend_logger.*"'
-          action: drop
-          drop_counter_reason: promtail_non_back_log
-      - template:
-          source: output
-          template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
-      - output:
-          source: output
+            - template:
+                source: output
+                template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
+            - output:
+                source: output
+#    pipeline_stages:
+#      - match:
+#          selector: '{job="backend_dev_logs"}'
+#          stages:
+#            - regex:
+#                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
+#            - labels:
+#                level: level
+#                component: component
+#                message: message
+#            - timestamp:
+#                format: "2006-01-02 15:04:05,000"
+#                source: timestamp
+#            - regex:
+#                expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
+#            - labels:
+#                class: class
+#                function: function
+#      - match:
+#          selector: '{job="backend_dev_logs"} !~ ".*backend_logger.*"'
+#          action: drop
+#          drop_counter_reason: promtail_non_back_log
+#      - template:
+#          source: output
+#          template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
+#      - output:
+#          source: output
+#
+#      - match:
+#          selector: '{backend_prod_logs"}'
+#          stages:
+#            - regex:
+#                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
+#            - labels:
+#                level: level
+#                component: component
+#                message: message
+#            - timestamp:
+#                format: "2006-01-02 15:04:05,000"
+#                source: timestamp
+#            - regex:
+#                expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
+#            - labels:
+#                class: class
+#                function: function
+#      - match:
+#          selector: '{job="backend_prod_logs"} !~ ".*backend_logger.*"'
+#          action: drop
+#          drop_counter_reason: promtail_non_back_log
+#      - template:
+#          source: output
+#          template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
+#      - output:
+#          source: output
+#
+#
+#      - match:
+#          selector: '{backend_test_logs"}'
+#          stages:
+#            - regex:
+#                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
+#            - labels:
+#                level: level
+#                component: component
+#                message: message
+#            - timestamp:
+#                format: "2006-01-02 15:04:05,000"
+#                source: timestamp
+#            - regex:
+#                expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
+#            - labels:
+#                class: class
+#                function: function
+#      - match:
+#          selector: '{job="backend_test_logs"} !~ ".*backend_logger.*"'
+#          action: drop
+#          drop_counter_reason: promtail_non_back_log
+#      - template:
+#          source: output
+#          template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
+#      - output:
+#          source: output
 
 
 #  - job_name: journal
