@@ -23,13 +23,13 @@ scrape_configs:
         target_label: 'unit'
       - source_labels: ['__journal__priority']
         target_label: 'priority'
-  - job_name: system
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: varlogs
-          __path__: /var/log/*
+#  - job_name: system
+#    static_configs:
+#      - targets:
+#          - localhost
+#        labels:
+#          job: varlogs
+#          __path__: /var/log/*
   # Scrape logs from Docker containers
   - job_name: docker
     docker_sd_configs:
@@ -50,27 +50,27 @@ scrape_configs:
         target_label: 'service'
       - source_labels: [ '__meta_docker_label_com_docker_compose_project' ]
         target_label: 'project'
-  - job_name: statsboards
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: statsboards
-          app: backend
-          __path__: ${STATS_BACK_LOGS_PATH_BACK}
-  - job_name: nginx-access
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: nginx
-          app: access
-          __path__: ${NGINX_ACCESS_LOG_PATH}
-  - job_name: nginx-error
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: nginx
-          app: error
-          __path__: ${NGINX_ERROR_LOG_PATH}
+#  - job_name: statsboards
+#    static_configs:
+#      - targets:
+#          - localhost
+#        labels:
+#          job: statsboards
+#          app: backend
+#          __path__: ${STATS_BACK_LOGS_PATH_BACK}
+#  - job_name: nginx-access
+#    static_configs:
+#      - targets:
+#          - localhost
+#        labels:
+#          job: nginx
+#          app: access
+#          __path__: ${NGINX_ACCESS_LOG_PATH}
+#  - job_name: nginx-error
+#    static_configs:
+#      - targets:
+#          - localhost
+#        labels:
+#          job: nginx
+#          app: error
+#          __path__: ${NGINX_ERROR_LOG_PATH}
