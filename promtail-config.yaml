@@ -11,18 +11,55 @@ clients:
   # - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: journal
-    journal:
-      max_age: 12h
-      labels:
-        job: systemd-journal
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: [ "logging=promtail" ]
     relabel_configs:
-      - source_labels: ['__journal__hostname']
-        target_label: 'host'
-      - source_labels: ['__journal__unit']
-        target_label: 'unit'
-      - source_labels: ['__journal__priority']
-        target_label: 'priority'
+      - source_labels: [ '__meta_docker_container_label_logging_jobname' ]
+        target_label: 'job'
+    pipeline_stages:
+      - match:
+          selector: '{job=~"backend_dev_logs|backend_prod_logs|backend_test_logs"}'
+          stages:
+            - regex:
+                expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<component>backend_logger_[A-Za-z0-9]+) - (?P<level>[A-Z]+) - (?P<message>.+)$'
+            - labels:
+                level: level
+                component: component
+                message: message
+            - timestamp:
+                format: "2006-01-02 15:04:05,000"
+                source: timestamp
+            - regex:
+                expression: 'Class:\s*(?P<class>[A-Za-z0-9]+) - Func:\s*(?P<function>[A-Za-z0-9_]+)'
+            - labels:
+                class: class
+                function: function
+      - match:
+          selector: '{job="backend_dev_logs"} !~ ".*backend_logger.*"'
+          action: drop
+          drop_counter_reason: promtail_non_back_log
+      - template:
+          source: output
+          template: '{{ ToUpper .level }} | {{ .message }} | Component[{{ .component }}] | {{ .timestamp }}'
+      - output:
+          source: output
+#  - job_name: journal
+#    journal:
+#      max_age: 12h
+#      labels:
+#        job: systemd-journal
+#    relabel_configs:
+#      - source_labels: ['__journal__hostname']
+#        target_label: 'host'
+#      - source_labels: ['__journal__unit']
+#        target_label: 'unit'
+#      - source_labels: ['__journal__priority']
+#        target_label: 'priority'
 #  - job_name: system
 #    static_configs:
 #      - targets:
@@ -30,29 +67,8 @@ scrape_configs:
 #        labels:
 #          job: varlogs
 #          __path__: /var/log/*
-  # Scrape logs from Docker containers
-  - job_name: docker
-    docker_sd_configs:
-      - host: "unix:///var/run/docker.sock"
-    relabel_configs:
-      # Filter only the nginx and backend containers by name
-      - source_labels: [ '__meta_docker_container_name' ]
-        regex: 'backend|nginx|frontend'
-        action: keep
-      # Label the logs with container name
-      - source_labels: [ '__meta_docker_container_name' ]
-        target_label: 'container'
-      # Label the logs with Docker image
-      - source_labels: [ '__meta_docker_image' ]
-        target_label: 'image'
-      # Add labels for Compose service and project
-      - source_labels: [ '__meta_docker_label_com_docker_compose_service' ]
-        target_label: 'service'
-      - source_labels: [ '__meta_docker_label_com_docker_compose_project' ]
-        target_label: 'project'
-      - source_labels: [ '__line__' ]
-        regex: '.*(WARNING|ERROR|CRITICAL).*'
-        action: keep
+
+
 #  - job_name: statsboards
 #    static_configs:
 #      - targets:
