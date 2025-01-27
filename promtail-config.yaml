@@ -41,9 +41,17 @@ scrape_configs:
 
       # Drop logs that don't match the backend_logger pattern
       - match:
-          selector: '{job=~"backend_.*"} !~ ".*backend_logger.*"'
+          selector: '{job="backend_dev_logs"} !~ ".*backend_logger.*"'
           action: drop
           drop_counter_reason: promtail_non_back_log
+      - match:
+          selector: '{job="backend_prod_logs"} !~ ".*backend_logger.*"'
+          action: drop
+          drop_counter_reason: promtail_non_back_log
+#      - match:
+#          selector: '{job="backend_test_logs"} !~ ".*backend_logger.*"'
+#          action: drop
+#          drop_counter_reason: promtail_non_back_log
 
       # Job-specific template and output
       - match:
